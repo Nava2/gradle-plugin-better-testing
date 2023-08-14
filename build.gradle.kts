@@ -1,7 +1,14 @@
 plugins {
+  `maven-publish`
+  signing
+
   alias(libs.plugins.kotlin)
   alias(libs.plugins.dependencyanalysis)
   alias(libs.plugins.kotlinx.binary.compatibility.validator)
+
+  alias(libs.plugins.nexus.publish)
+
+  id("better-testing.versioning")
 }
 
 buildscript {
@@ -15,9 +22,15 @@ repositories {
   mavenCentral()
 }
 
-group = "net.navatwo"
-version = "1.0-SNAPSHOT"
-
 apiValidation {
   ignoredProjects += "gradle-plugin-better-testing"
+}
+
+nexusPublishing {
+  repositories {
+    sonatype {
+      nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+      snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+    }
+  }
 }

@@ -1,0 +1,36 @@
+name: Build and test
+on: [ pull_request, push ]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Run CI checks
+        uses: gradle/gradle-build-action@v2
+        id: gradle
+        with:
+          arguments: check buildHealth --scan --continue
+
+      - name: Verify build health
+        run: |
+          BUILD_HEALTH_REPORT="./build/reports/dependency-analysis/build-health-report.txt"
+          
+          if [ -s $BUILD_HEALTH_REPORT ]; then
+            echo "Failed: ./gradlew buildHealth"
+            echo ""
+            cat $BUILD_HEALTH_REPORT
+            exit 1
+          fi
+
+      - name: "Add Build Scan URL as PR comment"
+        if: github.event_name == 'pull_request' && failure()
+        run: |
+          gh pr comment ${{ github.event.number }} \
+              --body "❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

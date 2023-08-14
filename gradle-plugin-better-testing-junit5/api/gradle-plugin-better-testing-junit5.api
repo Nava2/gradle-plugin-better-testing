@@ -1,0 +1,31 @@
+public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleProject : java/lang/annotation/Annotation {
+	public abstract fun projectDir ()Ljava/lang/String;
+}
+
+public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleProject$Root : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleProject$Runner : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleProjectsRoot : java/lang/annotation/Annotation {
+	public abstract fun directory ()Ljava/lang/String;
+}
+
+public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleTestKitDirectory : java/lang/annotation/Annotation {
+	public abstract fun directory ()Ljava/lang/String;
+}
+
+public final class net/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension : org/junit/jupiter/api/extension/AfterEachCallback, org/junit/jupiter/api/extension/BeforeAllCallback, org/junit/jupiter/api/extension/BeforeEachCallback, org/junit/jupiter/api/extension/ParameterResolver {
+	public static final field Companion Lnet/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension$Companion;
+	public fun <init> ()V
+	public fun afterEach (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
+	public fun beforeAll (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
+	public fun beforeEach (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
+	public fun resolveParameter (Lorg/junit/jupiter/api/extension/ParameterContext;Lorg/junit/jupiter/api/extension/ExtensionContext;)Ljava/lang/Object;
+	public fun supportsParameter (Lorg/junit/jupiter/api/extension/ParameterContext;Lorg/junit/jupiter/api/extension/ExtensionContext;)Z
+}
+
+public final class net/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension$Companion {
+}
+

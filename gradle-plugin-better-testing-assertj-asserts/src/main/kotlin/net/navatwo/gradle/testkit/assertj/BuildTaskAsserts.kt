@@ -7,17 +7,22 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import org.gradle.testkit.runner.TaskOutcome.SKIPPED
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import java.util.function.Consumer
 
 /**
  * Asserts that `this` [BuildTask] has [BuildTask.getOutcome] of [TaskOutcome.SUCCESS]
  */
 fun AbstractObjectAssert<*, BuildTask>.isSuccess(): AbstractObjectAssert<*, BuildTask> {
-  satisfies { task ->
-    assertThat(task.outcome)
-      .`as` { "\"${task.path}\" did not succeed: ${task.outcome}" }
-      .isEqualTo(TaskOutcome.SUCCESS)
-  }
+  satisfies(
+    Consumer { task ->
+      assertThat(task.outcome)
+        .`as` { "\"${task.path}\" did not succeed: ${task.outcome}" }
+        .isEqualTo(SUCCESS)
+    }
+  )
+
   return this
 }
 
@@ -25,22 +30,27 @@ fun AbstractObjectAssert<*, BuildTask>.isSuccess(): AbstractObjectAssert<*, Buil
  * Asserts that `this` [BuildTask] has [BuildTask.getOutcome] of [TaskOutcome.FAILED]
  */
 fun <SELF : AbstractObjectAssert<out SELF, BuildTask>> SELF.isFailed(): SELF {
-  satisfies { task ->
-    assertThat(task.outcome)
-      .`as` { "\"${task.path}\" did not fail: ${task.outcome}" }
-      .isEqualTo(TaskOutcome.FAILED)
-  }
+  satisfies(
+    Consumer { task ->
+      assertThat(task.outcome)
+        .`as` { "\"${task.path}\" did not fail: ${task.outcome}" }
+        .isEqualTo(TaskOutcome.FAILED)
+    }
+  )
+
   return this
 }
 
 private fun AbstractObjectAssert<*, BuildTask>.didNotRunWithStatus(
   taskOutcome: TaskOutcome,
 ): AbstractObjectAssert<*, BuildTask> {
-  satisfies { task ->
-    assertThat(task.outcome)
-      .`as` { "${task.path} status was not $taskOutcome: ${task.outcome}" }
-      .isEqualTo(taskOutcome)
-  }
+  satisfies(
+    Consumer { task ->
+      assertThat(task.outcome)
+        .`as` { "${task.path} status was not $taskOutcome: ${task.outcome}" }
+        .isEqualTo(taskOutcome)
+    }
+  )
 
   return this
 }

@@ -1,7 +1,9 @@
-package net.navatwo.gradle.testkit.junit5
+package net.navatwo.gradle.testkit.junit5.integration_test
 
 import net.navatwo.gradle.testkit.assertj.isSuccess
 import net.navatwo.gradle.testkit.assertj.task
+import net.navatwo.gradle.testkit.junit5.GradleProject
+import net.navatwo.gradle.testkit.junit5.GradleProjectsRoot
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
@@ -51,5 +53,17 @@ class ExtensionTests {
   @GradleProject(projectDir = "default-project-root")
   fun `no parameters is useless, but does not throw`() {
     assertThat(true).isTrue()
+  }
+
+  @Test
+  @GradleProject(projectDir = "default-project-root")
+  fun `multiple injections inject the same value`(
+    @GradleProject.Runner gradleRunner1: GradleRunner,
+    @GradleProject.Runner gradleRunner2: GradleRunner,
+    @GradleProject.Runner gradleRunner3: GradleRunner,
+  ) {
+    assertThat(gradleRunner1)
+      .isSameAs(gradleRunner2)
+      .isSameAs(gradleRunner3)
   }
 }

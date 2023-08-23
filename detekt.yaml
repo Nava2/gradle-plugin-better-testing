@@ -1,3 +1,9 @@
 formatting:
   Indentation:
     indentSize: 2
+  PackageName:
+    active: false # covered by naming.PackageNaming
+
+naming:
+  PackageNaming:
+    packagePattern: '[a-z]+(\.[a-z][A-Za-z0-9_]*)*'

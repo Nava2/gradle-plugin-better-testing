@@ -82,18 +82,6 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
     store.put(GradleTestKitDirectory::class, gradleTestKitDirectory)
   }
 
-  private inline fun <reified A : Annotation> ExtensionContext.findClassAnnotation(): A? = findClassAnnotation(
-    A::class
-  )
-
-  private fun <A : Annotation> ExtensionContext.findClassAnnotation(annotationClass: KClass<out A>): A? {
-    val testClass = testClass.map { it.kotlin }.orElse(null)
-      ?: return null
-
-    val fromTestClass = testClass.annotations.asSequence().filterIsInstance(annotationClass.java).singleOrNull()
-    return fromTestClass ?: parent.map { it.findClassAnnotation(annotationClass) }.orElse(null)
-  }
-
   override fun beforeEach(context: ExtensionContext) {
     val testMethod = context.requiredTestMethod?.kotlinFunction
     val relativeProjectRootPath = testMethod?.findAnnotation<GradleProject>()?.projectDir
@@ -201,4 +189,14 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
       path.toFile().deleteRecursively()
     }
   }
+}
+
+private inline fun <reified A : Annotation> ExtensionContext.findClassAnnotation(): A? = findClassAnnotation(A::class)
+
+private fun <A : Annotation> ExtensionContext.findClassAnnotation(annotationClass: KClass<out A>): A? {
+  val testClass = testClass.map { it.kotlin }.orElse(null)
+    ?: return null
+
+  val fromTestClass = testClass.annotations.asSequence().filterIsInstance(annotationClass.java).singleOrNull()
+  return fromTestClass ?: parent.map { it.findClassAnnotation(annotationClass) }.orElse(null)
 }

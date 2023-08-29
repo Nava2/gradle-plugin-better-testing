@@ -7,6 +7,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 
 private const val GRADLE_VERSION_OVERRIDE = "8.2"
+
 @GradleTestKitConfiguration(gradleVersion = GRADLE_VERSION_OVERRIDE)
 class GradleVersionOverrideTest {
   @Test

@@ -10,23 +10,13 @@ public abstract interface annotation class net/navatwo/gradle/testkit/junit5/Gra
 
 public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration : java/lang/annotation/Annotation {
 	public static final field Companion Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$Companion;
-	public abstract fun gradleVersion ()Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$GradleVersionOverride;
+	public abstract fun gradleVersion ()Ljava/lang/String;
 	public abstract fun projectsRoot ()Ljava/lang/String;
 	public abstract fun testKitDirectory ()Ljava/lang/String;
 	public abstract fun withPluginClasspath ()Z
 }
 
 public final class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$Companion {
-}
-
-public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$GradleVersionOverride : java/lang/annotation/Annotation {
-	public static final field Companion Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$GradleVersionOverride$Companion;
-	public static final field NO_OVERRIDE_VERSION Ljava/lang/String;
-	public abstract fun version ()Ljava/lang/String;
-}
-
-public final class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$GradleVersionOverride$Companion {
-	public static final field NO_OVERRIDE_VERSION Ljava/lang/String;
 }
 
 public final class net/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension : org/junit/jupiter/api/extension/AfterEachCallback, org/junit/jupiter/api/extension/BeforeAllCallback, org/junit/jupiter/api/extension/BeforeEachCallback, org/junit/jupiter/api/extension/ParameterResolver {

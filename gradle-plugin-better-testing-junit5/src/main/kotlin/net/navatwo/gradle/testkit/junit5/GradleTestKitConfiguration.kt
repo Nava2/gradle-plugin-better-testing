@@ -1,8 +1,5 @@
 package net.navatwo.gradle.testkit.junit5
 
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.GradleVersionOverride.Companion.NO_OVERRIDE_VERSION
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.GradleVersionOverride.Companion.isNoOverride
-
 /**
  * Used to set configuration values for the [GradleTestKitProjectExtension].
  */
@@ -31,26 +28,15 @@ annotation class GradleTestKitConfiguration(
    *
    * This can also be overridden by setting the system property `net.navatwo.gradle.testkit.junit5.gradleVersion`.
    */
-  val gradleVersion: GradleVersionOverride = GradleVersionOverride(NO_OVERRIDE_VERSION),
+  val gradleVersion: String = NO_OVERRIDE_VERSION,
 ) {
-  annotation class GradleVersionOverride(
-    /**
-     * The Gradle version to use for the test.
-     */
-    val version: String,
-  ) {
-    companion object {
-      const val NO_OVERRIDE_VERSION = "!!NO_OVERRIDE!!"
-
-      internal fun GradleVersionOverride.isNoOverride(): Boolean = version == NO_OVERRIDE_VERSION
-    }
-  }
-
   companion object {
+    internal const val NO_OVERRIDE_VERSION = "!!NO_OVERRIDE!!"
+
     internal val GradleTestKitConfiguration.effectiveGradleVersion: String?
       get() {
-        return System.getProperty("net.navatwo.gradle.testkit.junit5.gradleVersion", null)
-          ?: gradleVersion.version.takeIf { !gradleVersion.isNoOverride() }
+        return gradleVersion.takeIf { gradleVersion != NO_OVERRIDE_VERSION }
+          ?: System.getProperty("net.navatwo.gradle.testkit.junit5.gradleVersion", null)
       }
 
     internal val GradleTestKitConfiguration.effectiveWithPluginClasspath: Boolean

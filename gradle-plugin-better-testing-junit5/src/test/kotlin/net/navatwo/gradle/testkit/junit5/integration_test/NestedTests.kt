@@ -3,7 +3,7 @@ package net.navatwo.gradle.testkit.junit5.integration_test
 import net.navatwo.gradle.testkit.assertj.isSuccess
 import net.navatwo.gradle.testkit.assertj.task
 import net.navatwo.gradle.testkit.junit5.GradleProject
-import net.navatwo.gradle.testkit.junit5.GradleProjectsRoot
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Nested
@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import kotlin.io.path.name
 
-@GradleProjectsRoot(directory = "src/test/other-projects")
+@GradleTestKitConfiguration(projectsRoot = "src/test/other-projects")
 class NestedTests {
 
-  @GradleProjectsRoot(directory = "src/test/projects")
+  @GradleTestKitConfiguration(projectsRoot = "src/test/projects")
   @Nested
   inner class OverrideGradleProjectsRoot {
     @Test

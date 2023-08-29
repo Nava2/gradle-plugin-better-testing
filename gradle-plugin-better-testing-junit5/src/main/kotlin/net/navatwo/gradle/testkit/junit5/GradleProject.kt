@@ -4,7 +4,7 @@ package net.navatwo.gradle.testkit.junit5
 @Retention(AnnotationRetention.RUNTIME)
 annotation class GradleProject(
   /**
-   * The project directory to load from. This is relative to [GradleProjectsRoot.directory].
+   * The project directory to load from. This is relative to [GradleTestKitConfiguration.projectsRoot].
    */
   val projectDir: String
 ) {

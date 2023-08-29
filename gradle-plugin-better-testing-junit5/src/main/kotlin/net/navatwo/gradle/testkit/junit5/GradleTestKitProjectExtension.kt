@@ -1,5 +1,7 @@
 package net.navatwo.gradle.testkit.junit5
 
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveGradleVersion
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveWithPluginClasspath
 import net.navatwo.gradle.testkit.junit5.GradleTestKitProjectExtension.Companion.DEFAULT_TEST_KIT_DIRECTORY
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -7,6 +9,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
+import org.junit.jupiter.api.extension.ExtensionContext.Store
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 import java.io.File
@@ -33,8 +36,8 @@ import kotlin.reflect.jvm.kotlinFunction
  * 2. Add `@ExtendsWith(GradleTestKitProjectExtension::class)` to your test class
  *
  * This extension assumes projects are defined in a "projects" directory (e.g. `src/test/projects`). This can be
- * overridden by annotating your test class with [GradleProjectsRoot] (e.g.
- * `@GradleProjectsRoot("src/test/other-projects")`).
+ * overridden by annotating your test class with [GradleTestKitConfiguration.projectsRoot] (e.g.
+ * `@GradleTestKitConfiguration(projectRoots = "src/test/other-projects")`).
  *
  * To use a specific project, annotate a test method with [GradleProject]:
  * ```kotlin
@@ -49,12 +52,11 @@ import kotlin.reflect.jvm.kotlinFunction
  *
  * By default, this extension will set any injected [GradleRunner] to share a `TestKit` directory in the `build/`
  * directory for the project - [DEFAULT_TEST_KIT_DIRECTORY]). This can be overridden by annotating your test class with
- * [GradleTestKitDirectory]. This is done to _greatly_ improve the speed of tests by avoiding re-downloading Gradle
- * dependencies with each test run.
+ * [GradleTestKitConfiguration.testKitDirectory]. This is done to _greatly_ improve the speed of tests by avoiding
+ * re-downloading Gradle dependencies with each test run.
  *
  * @see GradleProject
- * @see GradleProjectsRoot
- * @see GradleTestKitDirectory
+ * @see GradleTestKitConfiguration
  */
 class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, AfterEachCallback, ParameterResolver {
   private val logger: Logger = Logger.getLogger(GradleTestKitProjectExtension::class.qualifiedName)
@@ -62,24 +64,27 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
   override fun beforeAll(context: ExtensionContext) {
     val store = context.getStore(Namespace.GLOBAL)
 
-    val projectsRootDirectoryPath = context.findClassAnnotation<GradleProjectsRoot>()?.directory
-      ?: DEFAULT_GRADLE_PROJECT_ROOT_DIRECTORY
+    val testKitConfig = context.findClassAnnotation<GradleTestKitConfiguration>()
+      ?: GradleTestKitConfiguration()
+
+    store.putKey(Keys.Configuration, testKitConfig)
+
+    val projectsRootDirectoryPath = testKitConfig.projectsRoot
 
     val projectsRootDirectory = Paths.get(projectsRootDirectoryPath)
     check(projectsRootDirectory.exists() && projectsRootDirectory.isDirectory()) {
       "Gradle project root directory '$projectsRootDirectory' does not exist or is not a directory."
     }
 
-    store.put(GradleProjectsRoot::class, projectsRootDirectory)
+    store.putKey(Keys.ProjectsRoot, projectsRootDirectory)
 
-    val gradleTestKitDirectoryPath = context.findClassAnnotation<GradleTestKitDirectory>()?.directory
-      ?: DEFAULT_TEST_KIT_DIRECTORY
+    val gradleTestKitDirectoryPath = testKitConfig.testKitDirectory
     val gradleTestKitDirectory = Paths.get(gradleTestKitDirectoryPath).absolute()
     check(gradleTestKitDirectory.isDirectory() || gradleTestKitDirectory.notExists()) {
       "Gradle test kit directory '$gradleTestKitDirectory' exists but is not a directory."
     }
 
-    store.put(GradleTestKitDirectory::class, gradleTestKitDirectory)
+    store.putKey(Keys.TestKitDirectory, gradleTestKitDirectory)
   }
 
   override fun beforeEach(context: ExtensionContext) {
@@ -88,7 +93,7 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
       ?: return // Nothing to do for us if there's no annotation
 
     val store = context.getStore(Namespace.GLOBAL)
-    val projectsRootDirectory = store.get(GradleProjectsRoot::class, Path::class.java)
+    val projectsRootDirectory = store.getKey(Keys.ProjectsRoot)
 
     val projectRoot = projectsRootDirectory.resolve(relativeProjectRootPath)
     check(projectRoot.exists() && projectRoot.isDirectory()) {
@@ -96,7 +101,7 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
     }
 
     val tempDirectory = TempDirectory(Files.createTempDirectory("gradle-testkit-project"))
-    store.put(GradleProject.Root::class, tempDirectory)
+    store.putKey(Keys.Project, tempDirectory)
 
     projectRoot.toFile().copyRecursively(tempDirectory.path.toFile(), overwrite = true)
   }
@@ -123,7 +128,7 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
   override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any {
     val store = extensionContext.getStore(Namespace.GLOBAL)
 
-    val projectRoot = store.get(GradleProject.Root::class, TempDirectory::class.java).path
+    val projectRoot = store.getKey(Keys.Project).path
 
     val parameterType = parameterContext.parameter.type
     return when {
@@ -139,26 +144,23 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
 
       parameterContext.isAnnotated(GradleProject.Runner::class.java) &&
         parameterType == GradleRunner::class.java -> {
-        store.getOrComputeIfAbsent(GradleProject.Runner::class) {
+        store.getOrComputeIfAbsent(Keys.Runner) {
+          val gradleTestKitConfiguration = store.getKey(Keys.Configuration)
+
           val runner = GradleRunner.create()
             .withProjectDir(projectRoot.toFile())
 
-          if (System.getProperty("net.navatwo.gradle.testkit.junit5.internal", "false") != "true") {
+          if (gradleTestKitConfiguration.effectiveWithPluginClasspath) {
             runner.withPluginClasspath()
           }
 
-          val gradleVersionOverride = System.getProperty(
-            "net.navatwo.gradle.testkit.junit5.gradleVersion",
-            null
-          )
+          val gradleVersionOverride = gradleTestKitConfiguration.effectiveGradleVersion
           if (gradleVersionOverride != null) {
             runner.withGradleVersion(gradleVersionOverride)
           }
 
-          val gradleTestKitDirectory = store.get(GradleTestKitDirectory::class, Path::class.java)
-          if (gradleTestKitDirectory != null) {
-            runner.withTestKitDir(gradleTestKitDirectory.toFile())
-          }
+          val gradleTestKitDirectory = store.getKey(Keys.TestKitDirectory)
+          runner.withTestKitDir(gradleTestKitDirectory.toFile())
 
           runner
         }
@@ -171,12 +173,36 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
   override fun afterEach(context: ExtensionContext) {
     val store = context.getStore(Namespace.GLOBAL)
 
-    val tempDirectory = store.get(GradleProject.Root::class, TempDirectory::class.java)
+    val tempDirectory = store.findKey(Keys.Project)
     try {
       tempDirectory?.close()
     } catch (ioe: IOException) {
-      logger.log(Level.WARNING, "Could not close ${tempDirectory.path.absolute()}", ioe)
+      logger.log(Level.WARNING, "Could not close ${tempDirectory?.path?.absolute()}", ioe)
     }
+  }
+
+  private sealed interface Keys<T : Any> {
+    data object Configuration : Keys<GradleTestKitConfiguration>
+
+    data object ProjectsRoot : Keys<Path>
+
+    data object TestKitDirectory : Keys<Path>
+
+    data object Project : Keys<TempDirectory>
+
+    data object Runner : Keys<GradleRunner>
+  }
+
+  private fun <T : Any> Store.putKey(key: Keys<T>, value: T) {
+    put(key, value)
+  }
+
+  private inline fun <reified T : Any> Store.getKey(key: Keys<T>): T {
+    return get(key, T::class.java)!!
+  }
+
+  private inline fun <reified T : Any> Store.findKey(key: Keys<T>): T? {
+    return get(key, T::class.java)
   }
 
   companion object {

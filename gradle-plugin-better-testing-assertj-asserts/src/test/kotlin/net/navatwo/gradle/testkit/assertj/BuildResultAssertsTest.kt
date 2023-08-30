@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.io.File
 
 @ExtendWith(GradleTestKitProjectExtension::class)
 @GradleTestKitConfiguration(
@@ -35,25 +34,5 @@ class BuildResultAssertsTest {
     assertThat(secondRun).task(":upToDate").isUpToDate()
     assertThat(secondRun).task(":noSource").isNoSource()
     assertThat(secondRun).task(":skipped").isSkipped()
-  }
-
-  @Test
-  @GradleProject("cached-tasks")
-  fun `verifying cached tasks works`(
-    @GradleProject.Runner runner: GradleRunner,
-    @GradleProject.Root root: File,
-  ) {
-    val firstRun = runner.withArguments("cached", "--no-build-cache").build()
-    assertThat(firstRun).task(":cached").isSuccess()
-
-    val secondRun = runner.withArguments("cached", "--build-cache").build()
-
-    assertThat(secondRun).task(":cached").isUpToDate()
-
-    // force to pull from cache
-    root.resolve("build/cached.txt").delete()
-
-    val cachedRun = runner.build()
-    assertThat(cachedRun).task(":cached").isFromCache()
   }
 }

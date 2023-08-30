@@ -14,7 +14,7 @@ import java.util.function.Consumer
  * @param taskPath The path of the task to assert executed
  */
 fun <SELF> SELF.task(taskPath: String): BuildTaskAssert
-    where SELF : AbstractObjectAssert<out SELF, BuildResult> {
+  where SELF : AbstractObjectAssert<out SELF, BuildResult> {
   return this.extracting(
     {
       it.task(taskPath)
@@ -28,7 +28,7 @@ fun <SELF> SELF.task(taskPath: String): BuildTaskAssert
  * @param taskPath The path of the task to assert not executed
  */
 fun <SELF> SELF.taskDidNotRun(taskPath: String): SELF
-    where SELF : AbstractObjectAssert<out SELF, BuildResult> {
+  where SELF : AbstractObjectAssert<out SELF, BuildResult> {
   satisfies(
     Consumer { buildResult ->
       val taskPaths = buildResult.tasks.map { it.path }

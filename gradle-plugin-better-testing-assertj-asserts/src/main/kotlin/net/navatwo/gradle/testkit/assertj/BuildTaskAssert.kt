@@ -3,10 +3,14 @@ package net.navatwo.gradle.testkit.assertj
 import org.assertj.core.api.AbstractObjectAssert
 import org.assertj.core.api.AssertFactory
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.api.Task
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.TaskOutcome.*
+import org.gradle.testkit.runner.TaskOutcome.FAILED
+import org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
+import org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
+import org.gradle.testkit.runner.TaskOutcome.SKIPPED
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class BuildTaskAssert internal constructor(
   private val task: BuildTask,

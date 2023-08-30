@@ -12,5 +12,6 @@ dependencies {
   testImplementation(project(":gradle-plugin-better-testing-junit5"))
 
   testImplementation(libs.junit.jupiter.api)
-  testImplementation(libs.junit.jupiter.engine)
+
+  testRuntimeOnly(libs.junit.jupiter.engine)
 }

@@ -14,11 +14,13 @@ val failed by tasks.creating {
 
 val upToDate by tasks.creating {
   inputs.file("InputFile.txt")
-  outputs.file("build/upToDate.txt")
+
+  val outputFile = project.layout.buildDirectory.file("upToDate.txt")
+  outputs.file(outputFile)
 
   doLast {
     println("upToDate!")
-    File("build/upToDate.txt").apply {
+    outputFile.get().asFile.apply {
       parentFile.mkdirs()
       writeText("upToDate!")
     }

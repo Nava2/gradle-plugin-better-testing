@@ -43,10 +43,10 @@ class BuildResultAssertsTest {
     @GradleProject.Runner runner: GradleRunner,
     @GradleProject.Root root: File,
   ) {
-    val firstRun = runner.withArguments("cached").build()
-    assertThat(firstRun).task(":cached").isSuccessOrFromCache()
+    val firstRun = runner.withArguments("cached", "--no-build-cache").build()
+    assertThat(firstRun).task(":cached").isSuccess()
 
-    val secondRun = runner.withArguments(":cached", "--build-cache").build()
+    val secondRun = runner.withArguments("cached", "--build-cache").build()
 
     assertThat(secondRun).task(":cached").isUpToDate()
 

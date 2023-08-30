@@ -1,14 +1,16 @@
 public final class net/navatwo/gradle/testkit/assertj/BuildResultAssertsKt {
 	public static final fun output (Lorg/assertj/core/api/ObjectAssert;)Lorg/assertj/core/api/AbstractStringAssert;
-	public static final fun task (Lorg/assertj/core/api/AbstractObjectAssert;Ljava/lang/String;)Lorg/assertj/core/api/AbstractObjectAssert;
+	public static final fun task (Lorg/assertj/core/api/AbstractObjectAssert;Ljava/lang/String;)Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public static final fun taskDidNotRun (Lorg/assertj/core/api/AbstractObjectAssert;Ljava/lang/String;)Lorg/assertj/core/api/AbstractObjectAssert;
 }
 
-public final class net/navatwo/gradle/testkit/assertj/BuildTaskAssertsKt {
-	public static final fun isFailed (Lorg/assertj/core/api/AbstractObjectAssert;)Lorg/assertj/core/api/AbstractObjectAssert;
-	public static final fun isFromCache (Lorg/assertj/core/api/AbstractObjectAssert;)Lorg/assertj/core/api/AbstractObjectAssert;
-	public static final fun isNoSource (Lorg/assertj/core/api/AbstractObjectAssert;)Lorg/assertj/core/api/AbstractObjectAssert;
-	public static final fun isSkipped (Lorg/assertj/core/api/AbstractObjectAssert;)Lorg/assertj/core/api/AbstractObjectAssert;
-	public static final fun isSuccess (Lorg/assertj/core/api/AbstractObjectAssert;)Lorg/assertj/core/api/AbstractObjectAssert;
-	public static final fun isUpToDate (Lorg/assertj/core/api/AbstractObjectAssert;)Lorg/assertj/core/api/AbstractObjectAssert;
+public final class net/navatwo/gradle/testkit/assertj/BuildTaskAssert : org/assertj/core/api/AbstractObjectAssert {
+	public final fun isFailed ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public final fun isFromCache ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public final fun isNoSource ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public final fun isSkipped ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public final fun isSuccess ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public final fun isSuccessOrFromCache ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
+	public final fun isUpToDate ()Lnet/navatwo/gradle/testkit/assertj/BuildTaskAssert;
 }
 

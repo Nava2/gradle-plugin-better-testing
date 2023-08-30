@@ -1,6 +1,5 @@
 package net.navatwo.gradle.testkit.junit5.integration_test
 
-import net.navatwo.gradle.testkit.assertj.isSuccess
 import net.navatwo.gradle.testkit.assertj.task
 import net.navatwo.gradle.testkit.junit5.GradleProject
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration

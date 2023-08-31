@@ -8,7 +8,7 @@ Provides a JUnit 5 extension for loading Gradle Projects in a consistent way wit
 ### Add to your project
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.0")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.2")
 }
 ```
 

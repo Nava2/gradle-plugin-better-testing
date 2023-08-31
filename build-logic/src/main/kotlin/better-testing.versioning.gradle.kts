@@ -1,6 +1,6 @@
 
 group = "net.navatwo.gradle"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.2-SNAPSHOT"
 
 val isRelease = providers.environmentVariable("RELEASE")
   .map { it.isNotBlank() }

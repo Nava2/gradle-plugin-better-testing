@@ -2,10 +2,10 @@ package net.navatwo.gradle.testkit.junit5
 
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveGradleVersion
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveWithPluginClasspath
-import net.navatwo.gradle.testkit.junit5.GradleTestKitProjectExtension.Companion.DEFAULT_TEST_KIT_DIRECTORY
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.merge
 import org.gradle.testkit.runner.GradleRunner
+import org.jetbrains.annotations.VisibleForTesting
 import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace
@@ -17,12 +17,14 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.io.path.absolute
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.notExists
+import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.kotlinFunction
@@ -51,22 +53,24 @@ import kotlin.reflect.jvm.kotlinFunction
  * <h3>Gradle TestKit</h3>
  *
  * By default, this extension will set any injected [GradleRunner] to share a `TestKit` directory in the `build/`
- * directory for the project - [DEFAULT_TEST_KIT_DIRECTORY]). This can be overridden by annotating your test class with
- * [GradleTestKitConfiguration.testKitDirectory]. This is done to _greatly_ improve the speed of tests by avoiding
- * re-downloading Gradle dependencies with each test run.
+ * directory for the project - [GradleTestKitConfiguration.DEFAULT_TESTKIT_DIRECTORY]). This can be overridden by
+ * annotating your test class with [GradleTestKitConfiguration.testKitDirectory]. This is done to _greatly_ improve the
+ * speed of tests by avoiding re-downloading Gradle dependencies with each test run.
  *
  * @see GradleProject
  * @see GradleTestKitConfiguration
  */
-class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, AfterEachCallback, ParameterResolver {
+class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, ParameterResolver {
   private val logger: Logger = Logger.getLogger(GradleTestKitProjectExtension::class.qualifiedName)
 
-  override fun beforeAll(context: ExtensionContext) {
+  override fun beforeEach(context: ExtensionContext) {
+    val testMethod = context.requiredTestMethod?.kotlinFunction
+    val relativeProjectRootPath = testMethod?.findAnnotation<GradleProject>()?.projectDir
+      ?: return // Nothing to do for us if there's no annotation
+
     val store = context.getStore(Namespace.GLOBAL)
 
-    val testKitConfig = context.findClassAnnotation<GradleTestKitConfiguration>()
-      ?: GradleTestKitConfiguration()
-
+    val testKitConfig = getTestKitConfig(context)
     store.putKey(Keys.Configuration, testKitConfig)
 
     val projectsRootDirectoryPath = testKitConfig.projectsRoot
@@ -85,15 +89,6 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
     }
 
     store.putKey(Keys.TestKitDirectory, gradleTestKitDirectory)
-  }
-
-  override fun beforeEach(context: ExtensionContext) {
-    val testMethod = context.requiredTestMethod?.kotlinFunction
-    val relativeProjectRootPath = testMethod?.findAnnotation<GradleProject>()?.projectDir
-      ?: return // Nothing to do for us if there's no annotation
-
-    val store = context.getStore(Namespace.GLOBAL)
-    val projectsRootDirectory = store.getKey(Keys.ProjectsRoot)
 
     val projectRoot = projectsRootDirectory.resolve(relativeProjectRootPath)
     check(projectRoot.exists() && projectRoot.isDirectory()) {
@@ -181,33 +176,37 @@ class GradleTestKitProjectExtension : BeforeAllCallback, BeforeEachCallback, Aft
     }
   }
 
-  private sealed interface Keys<T : Any> {
-    data object Configuration : Keys<GradleTestKitConfiguration>
+  private fun getTestKitConfig(context: ExtensionContext): GradleTestKitConfiguration {
+    val testKitConfigurations = context.collectAnnotations(GradleTestKitConfiguration::class)
+    return (testKitConfigurations + GradleTestKitConfiguration.DEFAULT).reduce { acc, config -> merge(acc, config) }
+  }
 
-    data object ProjectsRoot : Keys<Path>
+  private sealed class Keys<T : Any>(val type: KClass<T>) {
+    data object Configuration : Keys<GradleTestKitConfiguration>(GradleTestKitConfiguration::class)
 
-    data object TestKitDirectory : Keys<Path>
+    data object ProjectsRoot : Keys<Path>(Path::class)
 
-    data object Project : Keys<TempDirectory>
+    data object TestKitDirectory : Keys<Path>(Path::class)
 
-    data object Runner : Keys<GradleRunner>
+    data object Project : Keys<TempDirectory>(TempDirectory::class)
+
+    data object Runner : Keys<GradleRunner>(GradleRunner::class)
   }
 
   private fun <T : Any> Store.putKey(key: Keys<T>, value: T) {
     put(key, value)
   }
 
-  private inline fun <reified T : Any> Store.getKey(key: Keys<T>): T {
-    return get(key, T::class.java)!!
+  private fun <T : Any> Store.getKey(key: Keys<T>): T {
+    return get(key, key.type.java)!!
   }
 
-  private inline fun <reified T : Any> Store.findKey(key: Keys<T>): T? {
-    return get(key, T::class.java)
+  private fun <T : Any> Store.findKey(key: Keys<T>): T? {
+    return get(key, key.type.java)
   }
 
-  companion object {
-    internal const val DEFAULT_GRADLE_PROJECT_ROOT_DIRECTORY = "src/test/projects"
-    internal const val DEFAULT_TEST_KIT_DIRECTORY = "build/test-kit"
+  private fun <T : Any> Store.getOrComputeIfAbsent(key: Keys<T>, compute: () -> T): T {
+    return getOrComputeIfAbsent(key, { compute() }, key.type.java)
   }
 
   private data class TempDirectory(val path: Path) : AutoCloseable {
@@ -225,4 +224,27 @@ private fun <A : Annotation> ExtensionContext.findClassAnnotation(annotationClas
 
   val fromTestClass = testClass.annotations.asSequence().filterIsInstance(annotationClass.java).singleOrNull()
   return fromTestClass ?: parent.map { it.findClassAnnotation(annotationClass) }.orElse(null)
+}
+
+@VisibleForTesting
+internal fun <A : Annotation> ExtensionContext.collectAnnotations(annotationClass: KClass<A>): List<A> {
+  return sequence {
+    var currentContext: ExtensionContext? = this@collectAnnotations
+    while (currentContext != null) {
+      val methodAnn = currentContext.testMethod.flatMap { m ->
+        Optional.ofNullable(m.getAnnotation(annotationClass.java))
+      }
+
+      yield(methodAnn)
+
+      val classAnn = currentContext.testClass.flatMap { c ->
+        Optional.ofNullable(c.getAnnotation(annotationClass.java))
+      }
+      yield(classAnn)
+
+      currentContext = currentContext.parent.getOrNull()
+    }
+  }
+    .mapNotNull { it.getOrNull() }
+    .toList()
 }

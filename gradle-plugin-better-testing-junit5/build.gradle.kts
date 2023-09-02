@@ -9,6 +9,7 @@ dependencies {
   implementation(gradleTestKit())
 
   testImplementation(libs.assertj)
+  testImplementation(libs.mockito)
 
   testImplementation(project(":gradle-plugin-better-testing-assertj-asserts"))
 

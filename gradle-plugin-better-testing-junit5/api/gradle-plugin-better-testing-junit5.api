@@ -19,16 +19,11 @@ public abstract interface annotation class net/navatwo/gradle/testkit/junit5/Gra
 public final class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$Companion {
 }
 
-public final class net/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension : org/junit/jupiter/api/extension/AfterEachCallback, org/junit/jupiter/api/extension/BeforeAllCallback, org/junit/jupiter/api/extension/BeforeEachCallback, org/junit/jupiter/api/extension/ParameterResolver {
-	public static final field Companion Lnet/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension$Companion;
+public final class net/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension : org/junit/jupiter/api/extension/AfterEachCallback, org/junit/jupiter/api/extension/BeforeEachCallback, org/junit/jupiter/api/extension/ParameterResolver {
 	public fun <init> ()V
 	public fun afterEach (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
-	public fun beforeAll (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
 	public fun beforeEach (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
 	public fun resolveParameter (Lorg/junit/jupiter/api/extension/ParameterContext;Lorg/junit/jupiter/api/extension/ExtensionContext;)Ljava/lang/Object;
 	public fun supportsParameter (Lorg/junit/jupiter/api/extension/ParameterContext;Lorg/junit/jupiter/api/extension/ExtensionContext;)Z
-}
-
-public final class net/navatwo/gradle/testkit/junit5/GradleTestKitProjectExtension$Companion {
 }
 

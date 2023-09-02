@@ -111,9 +111,9 @@ tasks.withType<Jar> {
     val gitIsDirty = providers.exec {
       executable("git")
       args("status", "--porcelain")
-    }.result
-      .map { it.exitValue == 0 }
-      .map { it.toString() }
+    }.standardOutput.asText
+      .map { it.trim() }
+      .map { it.isNotBlank() }
 
     attributes(
       "Git-Commit" to gitCommit,

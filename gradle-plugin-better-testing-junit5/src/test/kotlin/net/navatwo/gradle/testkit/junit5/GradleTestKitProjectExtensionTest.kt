@@ -1,7 +1,5 @@
-package net.navatwo.gradle.testkit.junit5.integration_test
+package net.navatwo.gradle.testkit.junit5
 
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration
-import net.navatwo.gradle.testkit.junit5.collectAnnotations
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext

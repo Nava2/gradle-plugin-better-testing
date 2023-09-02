@@ -2,6 +2,8 @@ package net.navatwo.gradle.testkit.junit5
 
 /**
  * Used to set configuration values for the [GradleTestKitProjectExtension].
+ *
+ * This annotation can be applied to test methods, or classes. The closest specified value will be used per method.
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
@@ -9,14 +11,14 @@ annotation class GradleTestKitConfiguration(
   /**
    * Sets the root path for all [GradleProject] annotations.
    *
-   * Default value: `src/test/projects`.
+   * Default value: [DEFAULT_PROJECT_ROOTS].
    */
   val projectsRoot: String = NO_OVERRIDE_VERSION,
 
   /**
    * Annotates the directory used for [org.gradle.testkit.runner.GradleRunner.withTestKitDir].
    *
-   * Default value: `build/test-kit`
+   * Default value: [DEFAULT_TESTKIT_DIRECTORY]
    */
   val testKitDirectory: String = NO_OVERRIDE_VERSION,
 
@@ -27,6 +29,8 @@ annotation class GradleTestKitConfiguration(
 
   /**
    * If specified, sets the gradle version via [org.gradle.testkit.runner.GradleRunner.withGradleVersion].
+   *
+   * Default: Uses the version of gradle on the classpath.
    *
    * This can also be overridden by setting the system property `net.navatwo.gradle.testkit.junit5.gradleVersion`.
    */

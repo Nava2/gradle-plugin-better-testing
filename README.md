@@ -38,11 +38,24 @@ fun `lazy evaluation is successful`(@GradleProject.Runner gradleRunner: GradleRu
 
 Annotating with `@GradleProject.Runner` allows injecting a pre-configured [`GradleRunner`](https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html).
 
+### Configuration
+
+Test suite and method level configurations are done via the
+[`GradleTestKitConfiguration`](gradle-plugin-better-testing-junit5/src/main/kotlin/net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration.kt)
+annotation. Any values specified in these annotations will be used to override default values. The value specified 
+"closest" to the test method will always take precedence.
+
+### Manipulating projects in `@BeforeEach`
+
+If looking to have common setup within a test class, annotating a method with `@BeforeEach` and passing the parameter
+`@GradleProject.Runner` or `@GradleProject.Root` allows for shared configuration. For example, see 
+[`BeforeEachParameterInjectionTest.kt`](gradle-plugin-better-testing-junit5/src/test/kotlin/net/navatwo/gradle/testkit/junit5/integration_test/BeforeEachParameterInjectionTest.kt).
+
 ### Gradle TestKit 
 
 By default, this extension will set any injected `GradleRunner` to share a `TestKit` directory in the `build/`
 directory for the project - `${project_dir}/build/test-kit`. This can be overridden by annotating your test class with
-[`GradleTestKitDirectory`](gradle-plugin-better-testing-junit5/src/main/kotlin/net/navatwo/gradle/testkit/junit5/GradleTestKitDirectory.kt).
+[`GradleTestKitConfiguration`](gradle-plugin-better-testing-junit5/src/main/kotlin/net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration.kt).
 This is done to _greatly_ improve the speed of tests by avoiding re-downloading Gradle
 dependencies with each test run.
 

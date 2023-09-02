@@ -24,7 +24,6 @@ import kotlin.io.path.absolute
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.notExists
-import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.kotlinFunction
@@ -242,9 +241,9 @@ internal fun <A : Annotation> ExtensionContext.collectAnnotations(annotationClas
       }
       yield(classAnn)
 
-      currentContext = currentContext.parent.getOrNull()
+      currentContext = currentContext.parent.orElse(null)
     }
   }
-    .mapNotNull { it.getOrNull() }
+    .mapNotNull { it.orElse(null) }
     .toList()
 }

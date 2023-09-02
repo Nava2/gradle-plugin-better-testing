@@ -8,6 +8,8 @@ dependencies {
   implementation(kotlin("reflect"))
   implementation(gradleTestKit())
 
+  compileOnly(libs.jetbrains.annotations)
+
   testImplementation(libs.assertj)
   testImplementation(libs.mockito)
 

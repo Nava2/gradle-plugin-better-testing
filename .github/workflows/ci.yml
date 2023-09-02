@@ -15,6 +15,13 @@ jobs:
       - name: Verify gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
+      - name: Cache TestKits
+        id: cache-testkits
+        uses: actions/cache@v3
+        with:
+          path: '**/build/test-kit'
+          key: gradle-${{ matrix.gradle-version }}-testkits
+
       - name: Run CI checks
         uses: gradle/gradle-build-action@v2
         id: gradle

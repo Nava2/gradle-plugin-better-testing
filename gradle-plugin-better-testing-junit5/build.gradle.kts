@@ -8,7 +8,10 @@ dependencies {
   implementation(kotlin("reflect"))
   implementation(gradleTestKit())
 
+  compileOnly(libs.jetbrains.annotations)
+
   testImplementation(libs.assertj)
+  testImplementation(libs.mockito)
 
   testImplementation(project(":gradle-plugin-better-testing-assertj-asserts"))
 

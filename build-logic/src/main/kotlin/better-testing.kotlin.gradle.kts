@@ -101,3 +101,23 @@ fun ProviderFactory.gradleOrSystemProperty(propertyName: String): Provider<Strin
 signing {
   sign(publishing.publications["maven"])
 }
+
+tasks.withType<Jar> {
+  manifest {
+    val gitCommit = providers.exec {
+      executable("git")
+      args("rev-parse", "HEAD")
+    }.standardOutput.asText.map { it.trim() }
+    val gitIsDirty = providers.exec {
+      executable("git")
+      args("status", "--porcelain")
+    }.standardOutput.asText
+      .map { it.trim() }
+      .map { it.isNotBlank() }
+
+    attributes(
+      "Git-Commit" to gitCommit,
+      "Git-IsDirty" to gitIsDirty,
+    )
+  }
+}

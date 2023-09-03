@@ -12,6 +12,11 @@ internal object SystemPropertyOverrides {
   internal const val SYSTEM_PROJECT_ROOTS = "$SYSTEM_PREFIX.projectRoots"
 
   /**
+   * @see GradleTestKitConfiguration.testKitDirectory
+   */
+  internal const val SYSTEM_TEST_KIT_DIRECTORY = "$SYSTEM_PREFIX.testKitDirectory"
+
+  /**
    * @see GradleTestKitConfiguration.withPluginClasspath
    */
   private const val SYSTEM_IS_INTERNAL = "$SYSTEM_PREFIX.internal"
@@ -28,6 +33,7 @@ internal object SystemPropertyOverrides {
 
   fun systemConfiguration(): GradleTestKitConfiguration = GradleTestKitConfiguration(
     projectsRoot = System.getProperty(SYSTEM_PROJECT_ROOTS, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
+    testKitDirectory = System.getProperty(SYSTEM_TEST_KIT_DIRECTORY, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
     withPluginClasspath = System.getProperty(
       SYSTEM_WITH_PLUGIN_CLASSPATH,
       GradleTestKitConfiguration.DEFAULT_WITH_PLUGIN_CLASSPATH.toString(),

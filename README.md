@@ -5,6 +5,32 @@ A collection of libraries to make testing gradle plugins in Kotlin better.
 
 Provides a JUnit 5 extension for loading Gradle Projects in a consistent way within tests.
 
+
+### Full example
+
+```gradle
+dependencies {
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.2")
+}
+
+tasks.test {
+  // Enable auto-detection of JUnit extensions, avoids adding `@ExtendsWith(...)` to every test.
+  systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+
+  // Configure the gradle version from a gradle property, e.g. when running a test matrix across multiple gradle 
+  // versions 
+  // To use an environment variable, switch `gradleProperty` with `environmentVariable`.
+  val gradleVersion = providers.gradleProperty("test.gradleVersion")
+  if (gradleVersion.isPresent) {
+     systemProperty("net.navatwo.gradle.testkit.junit5.gradleVersion", gradleVersion.get())
+  }
+
+  // Use a shared directory across all projects 
+  val testKitDirectory: Directory = rootProject.layout.projectDirectory.dir(".gradle/testKit")
+  systemProperty("net.navatwo.gradle.testkit.junit5.testKitDirectory", testKitDirectory.asFile.toString())
+}
+```
+
 ### Add to your project
 ```gradle
 dependencies {
@@ -14,10 +40,10 @@ dependencies {
 
 This provides sensible defaults for performance and ease of use. All defaults are overridden via annotations. To use
 this extension, enable extensions in your project either via:
-1. Add `-Djunit.jupiter.extensions.autodetection.enabled=true` to your Test JVM arguments, e.g.:
+1. **(Recommended)** Add `junit.jupiter.extensions.autodetection.enabled` as `true` to your Test JVM arguments, e.g.:
      ```gradle
      tasks.test {
-       jvmArgs("-Djunit.jupiter.extensions.autodetection.enabled=true")
+       systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
      }
      ```
 2. Add `@ExtendsWith(GradleTestKitProjectExtension::class)` to your test class
@@ -58,6 +84,15 @@ directory for the project - `${project_dir}/build/test-kit`. This can be overrid
 [`GradleTestKitConfiguration`](gradle-plugin-better-testing-junit5/src/main/kotlin/net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration.kt).
 This is done to _greatly_ improve the speed of tests by avoiding re-downloading Gradle
 dependencies with each test run.
+
+We recommend to share the test kit directory across all projects to avoid needless downloading. For example:
+```kotlin
+val testKitDirectory: Directory = rootProject.layout.projectDirectory.dir(".gradle/testKit")
+
+tasks.test {
+   systemProperty("net.navatwo.gradle.testkit.junit5.testKitDirectory", testKitDirectory.asFile.toString())
+}
+```
 
 ## Development
 

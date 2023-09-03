@@ -29,7 +29,7 @@ import kotlin.reflect.jvm.kotlinFunction
  *
  * This provides sensible defaults for performance and ease of use. All defaults are overridden via annotations. To use
  * this extension, enable extensions in your project either via:
- * 1. Add `-Djunit.jupiter.extensions.autodetection.enabled=true` to your Test JVM arguments
+ * 1. Add `systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")` to your Test JVM arguments
  * 2. Add `@ExtendsWith(GradleTestKitProjectExtension::class)` to your test class
  *
  * This extension assumes projects are defined in a "projects" directory (e.g. `src/test/projects`). This can be

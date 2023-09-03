@@ -25,6 +25,7 @@ annotation class GradleTestKitConfiguration(
    * Annotates the directory used for [org.gradle.testkit.runner.GradleRunner.withTestKitDir].
    *
    * Default value: [DEFAULT_TESTKIT_DIRECTORY]
+   * System Override: `net.navatwo.gradle.testkit.junit5.testKitDirectory` - [SystemPropertyOverrides.SYSTEM_TEST_KIT_DIRECTORY]
    */
   val testKitDirectory: String = NO_OVERRIDE_VERSION,
 

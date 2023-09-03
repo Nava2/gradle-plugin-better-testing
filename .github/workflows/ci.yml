@@ -15,19 +15,19 @@ jobs:
       - name: Verify gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Run CI checks
-        uses: gradle/gradle-build-action@v2
-        id: gradle
-        with:
-          gradle-version: ${{ matrix.gradle-version }}
-          arguments: check buildHealth --scan --continue
-
       - name: Cache TestKit
         id: cache-testkit
         uses: actions/cache@v3
         with:
           path: '**/.gradle/testKit'
           key: gradle-${{ matrix.gradle-version }}-testkit
+
+      - name: Run CI checks
+        uses: gradle/gradle-build-action@v2
+        id: gradle
+        with:
+          gradle-version: ${{ matrix.gradle-version }}
+          arguments: check buildHealth --scan --continue
 
       - name: Verify build health
         run: |

@@ -1,10 +1,7 @@
 package net.navatwo.gradle.testkit.junit5
 
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveGradleVersion
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveWithPluginClasspath
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.merge
 import org.gradle.testkit.runner.GradleRunner
-import org.jetbrains.annotations.VisibleForTesting
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -17,7 +14,6 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.io.path.absolute
@@ -69,7 +65,7 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
 
     val store = context.getStore(Namespace.GLOBAL)
 
-    val testKitConfig = getTestKitConfig(context)
+    val testKitConfig = ConfigurationProvider.getConfigForContext(context)
     store.putKey(Keys.Configuration, testKitConfig)
 
     val projectsRootDirectoryPath = testKitConfig.projectsRoot
@@ -144,7 +140,7 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
           val runner = GradleRunner.create()
             .withProjectDir(projectRoot.toFile())
 
-          if (gradleTestKitConfiguration.effectiveWithPluginClasspath) {
+          if (gradleTestKitConfiguration.withPluginClasspath) {
             runner.withPluginClasspath()
           }
 
@@ -173,11 +169,6 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
     } catch (ioe: IOException) {
       logger.log(Level.WARNING, "Could not close ${tempDirectory?.path?.absolute()}", ioe)
     }
-  }
-
-  private fun getTestKitConfig(context: ExtensionContext): GradleTestKitConfiguration {
-    val testKitConfigurations = context.collectAnnotations(GradleTestKitConfiguration::class)
-    return (testKitConfigurations + GradleTestKitConfiguration.DEFAULT).reduce { acc, config -> merge(acc, config) }
   }
 
   private sealed class Keys<T : Any>(val type: KClass<T>) {
@@ -213,37 +204,4 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
       path.toFile().deleteRecursively()
     }
   }
-}
-
-private inline fun <reified A : Annotation> ExtensionContext.findClassAnnotation(): A? = findClassAnnotation(A::class)
-
-private fun <A : Annotation> ExtensionContext.findClassAnnotation(annotationClass: KClass<out A>): A? {
-  val testClass = testClass.map { it.kotlin }.orElse(null)
-    ?: return null
-
-  val fromTestClass = testClass.annotations.asSequence().filterIsInstance(annotationClass.java).singleOrNull()
-  return fromTestClass ?: parent.map { it.findClassAnnotation(annotationClass) }.orElse(null)
-}
-
-@VisibleForTesting
-internal fun <A : Annotation> ExtensionContext.collectAnnotations(annotationClass: KClass<A>): List<A> {
-  return sequence {
-    var currentContext: ExtensionContext? = this@collectAnnotations
-    while (currentContext != null) {
-      val methodAnn = currentContext.testMethod.flatMap { m ->
-        Optional.ofNullable(m.getAnnotation(annotationClass.java))
-      }
-
-      yield(methodAnn)
-
-      val classAnn = currentContext.testClass.flatMap { c ->
-        Optional.ofNullable(c.getAnnotation(annotationClass.java))
-      }
-      yield(classAnn)
-
-      currentContext = currentContext.parent.orElse(null)
-    }
-  }
-    .mapNotNull { it.orElse(null) }
-    .toList()
 }

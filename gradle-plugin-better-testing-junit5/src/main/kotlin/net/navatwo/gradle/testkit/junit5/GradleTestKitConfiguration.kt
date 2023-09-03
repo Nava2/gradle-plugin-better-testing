@@ -1,5 +1,9 @@
 package net.navatwo.gradle.testkit.junit5
 
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.DEFAULT_PROJECT_ROOTS
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.DEFAULT_TESTKIT_DIRECTORY
+import java.lang.annotation.Inherited
+
 /**
  * Used to set configuration values for the [GradleTestKitProjectExtension].
  *
@@ -7,11 +11,13 @@ package net.navatwo.gradle.testkit.junit5
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Inherited
 annotation class GradleTestKitConfiguration(
   /**
    * Sets the root path for all [GradleProject] annotations.
    *
    * Default value: [DEFAULT_PROJECT_ROOTS].
+   * System Override: `net.navatwo.gradle.testkit.junit5.projectRoots` - [SystemPropertyOverrides.SYSTEM_PROJECT_ROOTS]
    */
   val projectsRoot: String = NO_OVERRIDE_VERSION,
 
@@ -24,15 +30,16 @@ annotation class GradleTestKitConfiguration(
 
   /**
    * If true, calls [org.gradle.testkit.runner.GradleRunner.withPluginClasspath].
+   *
+   * System Override: `net.navatwo.gradle.testkit.junit5.withPluginClasspath` - [SystemPropertyOverrides.SYSTEM_WITH_PLUGIN_CLASSPATH]
    */
   val withPluginClasspath: Boolean = DEFAULT_WITH_PLUGIN_CLASSPATH,
 
   /**
    * If specified, sets the gradle version via [org.gradle.testkit.runner.GradleRunner.withGradleVersion].
    *
-   * Default: Uses the version of gradle on the classpath.
-   *
-   * This can also be overridden by setting the system property `net.navatwo.gradle.testkit.junit5.gradleVersion`.
+   * **Default:** Uses the version of gradle on the classpath.
+   * **System Override:** `net.navatwo.gradle.testkit.junit5.gradleVersion` - [SystemPropertyOverrides.SYSTEM_GRADLE_VERSION]
    */
   val gradleVersion: String = NO_OVERRIDE_VERSION,
 ) {
@@ -48,17 +55,7 @@ annotation class GradleTestKitConfiguration(
     internal const val DEFAULT_GRADLE_VERSION = NO_OVERRIDE_VERSION
 
     internal val GradleTestKitConfiguration.effectiveGradleVersion: String?
-      get() {
-        return gradleVersion.takeIf { gradleVersion != NO_OVERRIDE_VERSION }
-          ?: System.getProperty("net.navatwo.gradle.testkit.junit5.gradleVersion", null)
-      }
-
-    internal val GradleTestKitConfiguration.effectiveWithPluginClasspath: Boolean
-      get() {
-        val isInternalTest = System.getProperty("net.navatwo.gradle.testkit.junit5.internal", null)?.toBoolean()
-        val ifInternalDoNotUseClasspath = isInternalTest?.let { !it }
-        return ifInternalDoNotUseClasspath ?: withPluginClasspath
-      }
+      get() = gradleVersion.takeIf { it != NO_OVERRIDE_VERSION }
 
     internal val DEFAULT = GradleTestKitConfiguration(
       projectsRoot = DEFAULT_PROJECT_ROOTS,
@@ -75,21 +72,19 @@ annotation class GradleTestKitConfiguration(
       current: GradleTestKitConfiguration,
       next: GradleTestKitConfiguration
     ): GradleTestKitConfiguration {
-      fun <T : Any> ifNotDefault(default: T, current: T, next: T): T {
-        return when {
-          current == default -> next
-          next == default -> current
-          else -> current
-        }
+      fun <T : Any> ifNotDefault(default: T, current: T, next: T): T = when {
+        current == default -> next
+        next == default -> current
+        else -> current
       }
 
       return GradleTestKitConfiguration(
         projectsRoot = ifNotDefault(NO_OVERRIDE_VERSION, current.projectsRoot, next.projectsRoot),
         testKitDirectory = ifNotDefault(NO_OVERRIDE_VERSION, current.testKitDirectory, next.testKitDirectory),
         withPluginClasspath = ifNotDefault(
-          DEFAULT_WITH_PLUGIN_CLASSPATH,
-          current.withPluginClasspath,
-          next.withPluginClasspath
+          default = DEFAULT_WITH_PLUGIN_CLASSPATH,
+          current = current.withPluginClasspath,
+          next = next.withPluginClasspath,
         ),
         gradleVersion = ifNotDefault(NO_OVERRIDE_VERSION, current.gradleVersion, next.gradleVersion),
       )

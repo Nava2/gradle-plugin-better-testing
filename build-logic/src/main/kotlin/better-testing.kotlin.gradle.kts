@@ -121,3 +121,14 @@ tasks.withType<Jar> {
     )
   }
 }
+
+val testKitDirectory: Directory = rootProject.layout.projectDirectory.dir(".gradle/testKit")
+
+tasks.clean {
+  delete(testKitDirectory)
+}
+
+tasks.test {
+  systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+  systemProperty("net.navatwo.gradle.testkit.junit5.testKitDirectory", testKitDirectory.asFile.toString())
+}

@@ -19,18 +19,6 @@ dependencies {
 }
 
 tasks.test {
-  jvmArgs(
-    "-Djunit.jupiter.extensions.autodetection.enabled=true",
-
-    // We need to avoid calling `withPluginClasspath()` when we write our own tests.
-    "-Dnet.navatwo.gradle.testkit.junit5.internal=true",
-  )
-
-  val gradleVersionOverride = providers.gradleProperty("net.navatwo.gradle.testkit.junit5.testing.gradleVersion")
-    .map { version ->
-      "-Dnet.navatwo.gradle.testkit.junit5.gradleVersion=$version"
-    }
-  if (gradleVersionOverride.isPresent) {
-    jvmArgs(gradleVersionOverride.get())
-  }
+  // We need to avoid calling `withPluginClasspath()` when we write our own tests.
+  systemProperty("net.navatwo.gradle.testkit.junit5.internal", true)
 }

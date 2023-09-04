@@ -10,7 +10,7 @@ Provides a JUnit 5 extension for loading Gradle Projects in a consistent way wit
 
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.2")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.3")
 }
 
 tasks.test {
@@ -34,7 +34,7 @@ tasks.test {
 ### Add to your project
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.2")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.3")
 }
 ```
 

@@ -1,5 +1,7 @@
 package net.navatwo.gradle.testkit.junit5
 
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode
+
 /**
  * Defines system property overrides.
  */
@@ -31,6 +33,11 @@ internal object SystemPropertyOverrides {
    */
   internal const val SYSTEM_GRADLE_VERSION = "$SYSTEM_PREFIX.gradleVersion"
 
+  /**
+   * @see GradleTestKitConfiguration.buildDirectoryMode
+   */
+  internal const val SYSTEM_BUILD_DIRECTORY_MODE = "$SYSTEM_PREFIX.buildDirectoryMode"
+
   fun systemConfiguration(): GradleTestKitConfiguration = GradleTestKitConfiguration(
     projectsRoot = System.getProperty(SYSTEM_PROJECT_ROOTS, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
     testKitDirectory = System.getProperty(SYSTEM_TEST_KIT_DIRECTORY, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
@@ -39,6 +46,9 @@ internal object SystemPropertyOverrides {
       GradleTestKitConfiguration.DEFAULT_WITH_PLUGIN_CLASSPATH.toString(),
     ).toBoolean(),
     gradleVersion = System.getProperty(SYSTEM_GRADLE_VERSION, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
+    buildDirectoryMode = BuildDirectoryMode.valueOf(
+      System.getProperty(SYSTEM_BUILD_DIRECTORY_MODE, BuildDirectoryMode.UNSET.name),
+    ),
   )
 
   internal fun internalConfiguration(): GradleTestKitConfiguration = GradleTestKitConfiguration(

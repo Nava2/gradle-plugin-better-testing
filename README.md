@@ -126,4 +126,6 @@ RELEASE=1 ./gradlew build publishToSonatype closeAndReleaseSonatypeStagingReposi
 git push --tags
 
 # Create a new release: https://github.com/Nava2/kaff4/releases
+# Update version to next patch version in `build-logic/src/main/kotlin/better-testing.versioning.gradle.kts`,
+#    e.g. `0.0.3-SNAPSHOT`
 ```

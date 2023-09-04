@@ -10,10 +10,22 @@ public abstract interface annotation class net/navatwo/gradle/testkit/junit5/Gra
 
 public abstract interface annotation class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration : java/lang/annotation/Annotation {
 	public static final field Companion Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$Companion;
+	public abstract fun buildDirectoryMode ()Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
 	public abstract fun gradleVersion ()Ljava/lang/String;
 	public abstract fun projectsRoot ()Ljava/lang/String;
 	public abstract fun testKitDirectory ()Ljava/lang/String;
 	public abstract fun withPluginClasspath ()Z
+}
+
+public final class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode : java/lang/Enum {
+	public static final field CLEAN_BUILD Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
+	public static final field DIRTY_BUILD Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
+	public static final field PRISTINE Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
+	public static final field UNSET Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
+	public static fun values ()[Lnet/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$BuildDirectoryMode;
 }
 
 public final class net/navatwo/gradle/testkit/junit5/GradleTestKitConfiguration$Companion {

@@ -1,16 +1,25 @@
 package net.navatwo.gradle.testkit.junit5
 
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode.CLEAN_BUILD
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode.UNSET
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.DEFAULT_PROJECT_ROOTS
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.DEFAULT_TESTKIT_DIRECTORY
+import org.gradle.internal.impldep.org.eclipse.jgit.errors.NotSupportedException
+import java.io.File
 import java.lang.annotation.Inherited
+import kotlin.annotation.AnnotationRetention.RUNTIME
+import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.reflect.KProperty1
 
 /**
  * Used to set configuration values for the [GradleTestKitProjectExtension].
  *
  * This annotation can be applied to test methods, or classes. The closest specified value will be used per method.
  */
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Retention(RUNTIME)
+@Target(CLASS, FUNCTION)
 @Inherited
 annotation class GradleTestKitConfiguration(
   /**
@@ -43,7 +52,57 @@ annotation class GradleTestKitConfiguration(
    * **System Override:** `net.navatwo.gradle.testkit.junit5.gradleVersion` - [SystemPropertyOverrides.SYSTEM_GRADLE_VERSION]
    */
   val gradleVersion: String = NO_OVERRIDE_VERSION,
+
+  /**
+   * Sets the build directory mode.
+   *
+   * **Default:** [BuildDirectoryMode.CLEAN_BUILD]
+   * **System Override:** `net.navatwo.gradle.testkit.junit5.buildDirectoryMode` - [SystemPropertyOverrides.SYSTEM_BUILD_DIRECTORY_MODE]
+   *
+   * @see BuildDirectoryMode
+   */
+  val buildDirectoryMode: BuildDirectoryMode = UNSET,
 ) {
+  enum class BuildDirectoryMode {
+    /**
+     * Always use a fully clean test directory by copying into a temporary directory.
+     *
+     * Note: This makes debugging harder, it's often better to use another option unless required.
+     */
+    PRISTINE {
+      override fun setupTestDirectory(projectRoot: File) = TestExecutionDirectory.Pristine(projectRoot)
+    },
+
+    /**
+     * Runs build in tree, with a clean build directory.
+     */
+    CLEAN_BUILD {
+      // TODO configurable?
+      private val directoryNames = setOf("build", ".gradle")
+
+      override fun setupTestDirectory(projectRoot: File) = TestExecutionDirectory.Cleaned(projectRoot, directoryNames)
+    },
+
+    /**
+     * Runs build in tree, with all directories as-is.
+     */
+    DIRTY_BUILD {
+      override fun setupTestDirectory(projectRoot: File) = TestExecutionDirectory.Dirty(projectRoot)
+    },
+
+    /**
+     * Unset, use default.
+     */
+    UNSET {
+      override fun setupTestDirectory(projectRoot: File): TestExecutionDirectory {
+        throw NotSupportedException("UNSET is not a valid configuration.")
+      }
+    },
+    ;
+
+    internal abstract fun setupTestDirectory(projectRoot: File): TestExecutionDirectory
+  }
+
   companion object {
     internal const val NO_OVERRIDE_VERSION = "!!NO_OVERRIDE!!"
 
@@ -63,6 +122,7 @@ annotation class GradleTestKitConfiguration(
       testKitDirectory = DEFAULT_TESTKIT_DIRECTORY,
       withPluginClasspath = DEFAULT_WITH_PLUGIN_CLASSPATH,
       gradleVersion = DEFAULT_GRADLE_VERSION,
+      buildDirectoryMode = CLEAN_BUILD,
     )
 
     /**
@@ -73,21 +133,25 @@ annotation class GradleTestKitConfiguration(
       current: GradleTestKitConfiguration,
       next: GradleTestKitConfiguration
     ): GradleTestKitConfiguration {
-      fun <T : Any> ifNotDefault(default: T, current: T, next: T): T = when {
-        current == default -> next
-        next == default -> current
-        else -> current
+      fun <T : Any> ifNotDefault(default: T, property: KProperty1<GradleTestKitConfiguration, T>): T {
+        val currentValue = property.get(current)
+        val nextValue = property.get(next)
+        return when {
+          currentValue == default -> nextValue
+          nextValue == default -> currentValue
+          else -> currentValue
+        }
       }
 
       return GradleTestKitConfiguration(
-        projectsRoot = ifNotDefault(NO_OVERRIDE_VERSION, current.projectsRoot, next.projectsRoot),
-        testKitDirectory = ifNotDefault(NO_OVERRIDE_VERSION, current.testKitDirectory, next.testKitDirectory),
+        projectsRoot = ifNotDefault(NO_OVERRIDE_VERSION, GradleTestKitConfiguration::projectsRoot),
+        testKitDirectory = ifNotDefault(NO_OVERRIDE_VERSION, GradleTestKitConfiguration::testKitDirectory),
         withPluginClasspath = ifNotDefault(
           default = DEFAULT_WITH_PLUGIN_CLASSPATH,
-          current = current.withPluginClasspath,
-          next = next.withPluginClasspath,
+          property = GradleTestKitConfiguration::withPluginClasspath,
         ),
-        gradleVersion = ifNotDefault(NO_OVERRIDE_VERSION, current.gradleVersion, next.gradleVersion),
+        gradleVersion = ifNotDefault(NO_OVERRIDE_VERSION, GradleTestKitConfiguration::gradleVersion),
+        buildDirectoryMode = ifNotDefault(UNSET, GradleTestKitConfiguration::buildDirectoryMode)
       )
     }
   }

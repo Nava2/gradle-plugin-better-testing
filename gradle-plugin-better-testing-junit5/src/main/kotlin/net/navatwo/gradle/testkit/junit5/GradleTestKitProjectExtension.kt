@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.logging.Level
@@ -90,10 +89,9 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
       "Gradle project root directory '$projectRoot' does not exist or is not a directory."
     }
 
-    val tempDirectory = TempDirectory(Files.createTempDirectory("gradle-testkit-project"))
-    store.putKey(Keys.Project, tempDirectory)
-
-    projectRoot.toFile().copyRecursively(tempDirectory.path.toFile(), overwrite = true)
+    val buildDirectoryMode = testKitConfig.buildDirectoryMode
+    val testExecutionDirectory = buildDirectoryMode.setupTestDirectory(projectRoot.toFile())
+    store.putKey(Keys.Project, testExecutionDirectory)
   }
 
   override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
@@ -118,7 +116,7 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
   override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any {
     val store = extensionContext.getStore(Namespace.GLOBAL)
 
-    val projectRoot = store.getKey(Keys.Project).path
+    val projectRoot = store.getKey(Keys.Project).root
 
     val parameterType = parameterContext.parameter.type
     return when {
@@ -126,9 +124,9 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
         parameterType == Path::class.java || parameterType == File::class.java
         ) -> {
         if (parameterType == Path::class.java) {
-          projectRoot
+          projectRoot.toPath()
         } else {
-          projectRoot.toFile()
+          projectRoot
         }
       }
 
@@ -138,7 +136,7 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
           val gradleTestKitConfiguration = store.getKey(Keys.Configuration)
 
           val runner = GradleRunner.create()
-            .withProjectDir(projectRoot.toFile())
+            .withProjectDir(projectRoot)
 
           if (gradleTestKitConfiguration.withPluginClasspath) {
             runner.withPluginClasspath()
@@ -163,11 +161,11 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
   override fun afterEach(context: ExtensionContext) {
     val store = context.getStore(Namespace.GLOBAL)
 
-    val tempDirectory = store.findKey(Keys.Project)
+    val testExecutionDirectory = store.findKey(Keys.Project)
     try {
-      tempDirectory?.close()
+      testExecutionDirectory?.close()
     } catch (ioe: IOException) {
-      logger.log(Level.WARNING, "Could not close ${tempDirectory?.path?.absolute()}", ioe)
+      logger.log(Level.WARNING, "Could not close ${testExecutionDirectory?.root?.absoluteFile}", ioe)
     }
   }
 
@@ -178,7 +176,7 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
 
     data object TestKitDirectory : Keys<Path>(Path::class)
 
-    data object Project : Keys<TempDirectory>(TempDirectory::class)
+    data object Project : Keys<TestExecutionDirectory>(TestExecutionDirectory::class)
 
     data object Runner : Keys<GradleRunner>(GradleRunner::class)
   }
@@ -193,15 +191,5 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
 
   private fun <T : Any> Store.findKey(key: Keys<T>): T? {
     return get(key, key.type.java)
-  }
-
-  private fun <T : Any> Store.getOrComputeIfAbsent(key: Keys<T>, compute: () -> T): T {
-    return getOrComputeIfAbsent(key, { compute() }, key.type.java)
-  }
-
-  private data class TempDirectory(val path: Path) : AutoCloseable {
-    override fun close() {
-      path.toFile().deleteRecursively()
-    }
   }
 }

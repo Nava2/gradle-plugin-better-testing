@@ -77,10 +77,7 @@ annotation class GradleTestKitConfiguration(
      * Runs build in tree, with a clean build directory.
      */
     CLEAN_BUILD {
-      // TODO configurable?
-      private val directoryNames = setOf("build", ".gradle")
-
-      override fun setupTestDirectory(projectRoot: File) = TestExecutionDirectory.Cleaned(projectRoot, directoryNames)
+      override fun setupTestDirectory(projectRoot: File) = TestExecutionDirectory.Cleaned(projectRoot)
     },
 
     /**

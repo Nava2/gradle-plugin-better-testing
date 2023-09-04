@@ -11,13 +11,15 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.io.path.name
 
+private val DEFAULT_CLEANED_BUILD_DIRS = setOf("build", ".gradle")
+
 internal sealed interface TestExecutionDirectory : AutoCloseable {
 
   val root: File
 
   data class Cleaned(
     override val root: File,
-    val directoryNamesToClean: Set<String>,
+    val directoryNamesToClean: Set<String> = DEFAULT_CLEANED_BUILD_DIRS,
   ) : TestExecutionDirectory {
     init {
       root.cleanDirectoriesWithin(directoryNamesToClean)
@@ -35,7 +37,7 @@ internal sealed interface TestExecutionDirectory : AutoCloseable {
   data class Pristine(
     @VisibleForTesting
     internal val sourceRoot: File,
-    val directoryNamesToClean: Set<String> = setOf(".gradle", "build"),
+    val directoryNamesToClean: Set<String> = DEFAULT_CLEANED_BUILD_DIRS,
   ) : TestExecutionDirectory {
 
     override val root: File = Files.createTempDirectory(TEMP_DIRECTORY_PREFIX).toFile()

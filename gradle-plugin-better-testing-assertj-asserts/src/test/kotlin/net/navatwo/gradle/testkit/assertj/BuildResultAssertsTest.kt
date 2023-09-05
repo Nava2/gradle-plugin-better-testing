@@ -2,6 +2,7 @@ package net.navatwo.gradle.testkit.assertj
 
 import net.navatwo.gradle.testkit.junit5.GradleProject
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.ClasspathMode.NO_PROJECT_CLASSPATH
 import net.navatwo.gradle.testkit.junit5.GradleTestKitProjectExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(GradleTestKitProjectExtension::class)
 @GradleTestKitConfiguration(
-  withPluginClasspath = false,
+  classpathMode = NO_PROJECT_CLASSPATH,
 )
 class BuildResultAssertsTest {
   @Test

@@ -1,6 +1,7 @@
 package net.navatwo.gradle.testkit.junit5
 
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.ClasspathMode
 
 /**
  * Defines system property overrides.
@@ -19,12 +20,12 @@ internal object SystemPropertyOverrides {
   internal const val SYSTEM_TEST_KIT_DIRECTORY = "$SYSTEM_PREFIX.testKitDirectory"
 
   /**
-   * @see GradleTestKitConfiguration.withPluginClasspath
+   * @see GradleTestKitConfiguration.classpathMode
    */
   private const val SYSTEM_IS_INTERNAL = "$SYSTEM_PREFIX.internal"
 
   /**
-   * @see GradleTestKitConfiguration.withPluginClasspath
+   * @see GradleTestKitConfiguration.classpathMode
    */
   internal const val SYSTEM_WITH_PLUGIN_CLASSPATH = "$SYSTEM_PREFIX.withPluginClasspath"
 
@@ -41,24 +42,23 @@ internal object SystemPropertyOverrides {
   fun systemConfiguration(): GradleTestKitConfiguration = GradleTestKitConfiguration(
     projectsRoot = System.getProperty(SYSTEM_PROJECT_ROOTS, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
     testKitDirectory = System.getProperty(SYSTEM_TEST_KIT_DIRECTORY, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
-    withPluginClasspath = System.getProperty(
-      SYSTEM_WITH_PLUGIN_CLASSPATH,
-      GradleTestKitConfiguration.DEFAULT_WITH_PLUGIN_CLASSPATH.toString(),
-    ).toBoolean(),
+    classpathMode = readEnum(SYSTEM_WITH_PLUGIN_CLASSPATH, ClasspathMode.UNSET),
     gradleVersion = System.getProperty(SYSTEM_GRADLE_VERSION, GradleTestKitConfiguration.NO_OVERRIDE_VERSION),
-    buildDirectoryMode = BuildDirectoryMode.valueOf(
-      System.getProperty(SYSTEM_BUILD_DIRECTORY_MODE, BuildDirectoryMode.UNSET.name),
-    ),
+    buildDirectoryMode = readEnum(SYSTEM_BUILD_DIRECTORY_MODE, BuildDirectoryMode.UNSET),
   )
 
   internal fun internalConfiguration(): GradleTestKitConfiguration = GradleTestKitConfiguration(
-    withPluginClasspath = run {
-      val isInternalTest = System.getProperty(
-        SYSTEM_IS_INTERNAL,
-        GradleTestKitConfiguration.DEFAULT_WITH_PLUGIN_CLASSPATH.toString()
-      ).toBoolean()
-      val ifInternalDoNotUseClasspath = !isInternalTest
-      ifInternalDoNotUseClasspath
+    classpathMode = if (isInternalTest()) {
+      ClasspathMode.NO_PROJECT_CLASSPATH
+    } else {
+      ClasspathMode.UNSET
     },
   )
+
+  internal fun isInternalTest() = System.getProperty(SYSTEM_IS_INTERNAL, null)?.toBoolean() == true
+}
+
+private inline fun <reified E : Enum<E>> readEnum(property: String, default: E): E {
+  val value = System.getProperty(property, default.name)
+  return enumValueOf(value)
 }

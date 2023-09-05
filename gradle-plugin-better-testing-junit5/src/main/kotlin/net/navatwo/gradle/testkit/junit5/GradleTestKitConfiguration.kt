@@ -1,11 +1,10 @@
 package net.navatwo.gradle.testkit.junit5
 
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode.CLEAN_BUILD
-import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.BuildDirectoryMode.UNSET
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.DEFAULT_PROJECT_ROOTS
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.DEFAULT_TESTKIT_DIRECTORY
 import org.gradle.internal.impldep.org.eclipse.jgit.errors.NotSupportedException
+import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import java.lang.annotation.Inherited
 import kotlin.annotation.AnnotationRetention.RUNTIME
@@ -39,11 +38,13 @@ annotation class GradleTestKitConfiguration(
   val testKitDirectory: String = NO_OVERRIDE_VERSION,
 
   /**
-   * If true, calls [org.gradle.testkit.runner.GradleRunner.withPluginClasspath].
+   * If [ClasspathMode.WITH_PROJECT_CLASSPATH], calls
+   * [org.gradle.testkit.runner.GradleRunner.withPluginClasspath].
    *
+   * @see ClasspathMode
    * System Override: `net.navatwo.gradle.testkit.junit5.withPluginClasspath` - [SystemPropertyOverrides.SYSTEM_WITH_PLUGIN_CLASSPATH]
    */
-  val withPluginClasspath: Boolean = DEFAULT_WITH_PLUGIN_CLASSPATH,
+  val classpathMode: ClasspathMode = ClasspathMode.UNSET,
 
   /**
    * If specified, sets the gradle version via [org.gradle.testkit.runner.GradleRunner.withGradleVersion].
@@ -61,8 +62,38 @@ annotation class GradleTestKitConfiguration(
    *
    * @see BuildDirectoryMode
    */
-  val buildDirectoryMode: BuildDirectoryMode = UNSET,
+  val buildDirectoryMode: BuildDirectoryMode = BuildDirectoryMode.UNSET,
 ) {
+  enum class ClasspathMode {
+    /**
+     * Use the project classpath, i.e. call [org.gradle.testkit.runner.GradleRunner.withPluginClasspath].
+     */
+    WITH_PROJECT_CLASSPATH {
+      override fun setupRunner(runner: GradleRunner) {
+        runner.withPluginClasspath()
+      }
+    },
+
+    /**
+     * Do not add the project classpath, i.e. do not call [org.gradle.testkit.runner.GradleRunner.withPluginClasspath].
+     */
+    NO_PROJECT_CLASSPATH {
+      override fun setupRunner(runner: GradleRunner) = Unit
+    },
+
+    /**
+     * Unset value
+     */
+    UNSET {
+      override fun setupRunner(runner: GradleRunner) {
+        throw NotSupportedException("Must specify [PluginClasspathMode] specifically.")
+      }
+    }
+    ;
+
+    internal abstract fun setupRunner(runner: GradleRunner)
+  }
+
   enum class BuildDirectoryMode {
     /**
      * Always use a fully clean test directory by copying into a temporary directory.
@@ -107,9 +138,9 @@ annotation class GradleTestKitConfiguration(
 
     internal const val DEFAULT_TESTKIT_DIRECTORY = "build/test-kit"
 
-    internal const val DEFAULT_WITH_PLUGIN_CLASSPATH = true
+    private val DEFAULT_WITH_PLUGIN_CLASSPATH = ClasspathMode.WITH_PROJECT_CLASSPATH
 
-    internal const val DEFAULT_GRADLE_VERSION = NO_OVERRIDE_VERSION
+    private const val DEFAULT_GRADLE_VERSION = NO_OVERRIDE_VERSION
 
     internal val GradleTestKitConfiguration.effectiveGradleVersion: String?
       get() = gradleVersion.takeIf { it != NO_OVERRIDE_VERSION }
@@ -117,9 +148,9 @@ annotation class GradleTestKitConfiguration(
     internal val DEFAULT = GradleTestKitConfiguration(
       projectsRoot = DEFAULT_PROJECT_ROOTS,
       testKitDirectory = DEFAULT_TESTKIT_DIRECTORY,
-      withPluginClasspath = DEFAULT_WITH_PLUGIN_CLASSPATH,
+      classpathMode = DEFAULT_WITH_PLUGIN_CLASSPATH,
       gradleVersion = DEFAULT_GRADLE_VERSION,
-      buildDirectoryMode = CLEAN_BUILD,
+      buildDirectoryMode = BuildDirectoryMode.CLEAN_BUILD,
     )
 
     /**
@@ -143,12 +174,9 @@ annotation class GradleTestKitConfiguration(
       return GradleTestKitConfiguration(
         projectsRoot = ifNotDefault(NO_OVERRIDE_VERSION, GradleTestKitConfiguration::projectsRoot),
         testKitDirectory = ifNotDefault(NO_OVERRIDE_VERSION, GradleTestKitConfiguration::testKitDirectory),
-        withPluginClasspath = ifNotDefault(
-          default = DEFAULT_WITH_PLUGIN_CLASSPATH,
-          property = GradleTestKitConfiguration::withPluginClasspath,
-        ),
+        classpathMode = ifNotDefault(ClasspathMode.UNSET, GradleTestKitConfiguration::classpathMode),
         gradleVersion = ifNotDefault(NO_OVERRIDE_VERSION, GradleTestKitConfiguration::gradleVersion),
-        buildDirectoryMode = ifNotDefault(UNSET, GradleTestKitConfiguration::buildDirectoryMode)
+        buildDirectoryMode = ifNotDefault(BuildDirectoryMode.UNSET, GradleTestKitConfiguration::buildDirectoryMode)
       )
     }
   }

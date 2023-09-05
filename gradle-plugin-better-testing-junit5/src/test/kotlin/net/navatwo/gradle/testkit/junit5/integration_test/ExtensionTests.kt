@@ -3,6 +3,8 @@ package net.navatwo.gradle.testkit.junit5.integration_test
 import net.navatwo.gradle.testkit.assertj.task
 import net.navatwo.gradle.testkit.junit5.GradleProject
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.ClasspathMode.NO_PROJECT_CLASSPATH
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.ClasspathMode.WITH_PROJECT_CLASSPATH
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
@@ -64,5 +66,23 @@ class ExtensionTests {
     assertThat(gradleRunner1)
       .isSameAs(gradleRunner2)
       .isSameAs(gradleRunner3)
+  }
+
+  @Test
+  @GradleProject(projectDir = "default-project-root")
+  @GradleTestKitConfiguration(classpathMode = WITH_PROJECT_CLASSPATH)
+  fun `withPluginClasspath is applied when overriding to WITH_PROJECT_CLASSPATH`(
+    config: GradleTestKitConfiguration,
+  ) {
+    assertThat(config.classpathMode).isEqualTo(WITH_PROJECT_CLASSPATH)
+  }
+
+  @Test
+  @GradleProject(projectDir = "default-project-root")
+  @GradleTestKitConfiguration(classpathMode = NO_PROJECT_CLASSPATH)
+  fun `withPluginClasspath overridden to NO_PROJECT_CLASSPATH causes classpath to be empty`(
+    config: GradleTestKitConfiguration,
+  ) {
+    assertThat(config.classpathMode).isEqualTo(NO_PROJECT_CLASSPATH)
   }
 }

@@ -1,6 +1,7 @@
 package net.navatwo.gradle.testkit.junit5
 
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.effectiveGradleVersion
+import net.navatwo.gradle.testkit.junit5.SystemPropertyOverrides.isInternalTest
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -109,6 +110,9 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
       parameterContext.isAnnotated(GradleProject.Runner::class.java) &&
         parameterType == GradleRunner::class.java -> true
 
+      // This is only supported for internal tests
+      isInternalTest() && parameterType == GradleTestKitConfiguration::class.java -> true
+
       else -> false
     }
   }
@@ -138,9 +142,7 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
           val runner = GradleRunner.create()
             .withProjectDir(projectRoot)
 
-          if (gradleTestKitConfiguration.withPluginClasspath) {
-            runner.withPluginClasspath()
-          }
+          gradleTestKitConfiguration.classpathMode.setupRunner(runner)
 
           val gradleVersionOverride = gradleTestKitConfiguration.effectiveGradleVersion
           if (gradleVersionOverride != null) {
@@ -152,6 +154,10 @@ class GradleTestKitProjectExtension : BeforeEachCallback, AfterEachCallback, Par
 
           runner
         }
+      }
+
+      parameterType == GradleTestKitConfiguration::class.java -> {
+        store.getKey(Keys.Configuration)
       }
 
       else -> error("Unsupported parameter: $parameterContext")

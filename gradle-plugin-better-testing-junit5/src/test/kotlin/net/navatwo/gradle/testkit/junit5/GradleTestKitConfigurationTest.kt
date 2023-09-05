@@ -1,5 +1,6 @@
 package net.navatwo.gradle.testkit.junit5
 
+import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.ClasspathMode.NO_PROJECT_CLASSPATH
 import net.navatwo.gradle.testkit.junit5.GradleTestKitConfiguration.Companion.merge
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -17,14 +18,14 @@ internal class GradleTestKitConfigurationTest {
       projectsRoot = "class",
       testKitDirectory = "class",
       gradleVersion = "class",
-      withPluginClasspath = false,
+      classpathMode = NO_PROJECT_CLASSPATH,
     )
 
     assertThat(merge(methodAnn, classAnn)).isEqualTo(
       GradleTestKitConfiguration(
         projectsRoot = methodAnn.projectsRoot,
         testKitDirectory = classAnn.testKitDirectory,
-        withPluginClasspath = classAnn.withPluginClasspath,
+        classpathMode = classAnn.classpathMode,
         gradleVersion = methodAnn.gradleVersion,
       )
     )

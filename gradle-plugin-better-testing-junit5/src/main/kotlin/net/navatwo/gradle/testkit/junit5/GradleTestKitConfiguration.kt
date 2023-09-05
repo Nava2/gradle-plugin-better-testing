@@ -91,7 +91,7 @@ annotation class GradleTestKitConfiguration(
     }
     ;
 
-    abstract fun setupRunner(runner: GradleRunner)
+    internal abstract fun setupRunner(runner: GradleRunner)
   }
 
   enum class BuildDirectoryMode {

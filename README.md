@@ -10,7 +10,7 @@ Provides a JUnit 5 extension for loading Gradle Projects in a consistent way wit
 
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.3")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.5")
 }
 
 tasks.test {
@@ -34,7 +34,7 @@ tasks.test {
 ### Add to your project
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.3")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.5")
 }
 ```
 
@@ -120,7 +120,11 @@ sonatypePassword=<sonatype user token password>
 git tag v0.0.0
 
 # Publish a new build - BE MINDFUL OF SHELL HISTORY PRESERVING ENVIRONMENT VARIABLES
-RELEASE=1 ./gradlew build publishToSonatype closeAndReleaseSonatypeStagingRepository
+RELEASE=1 ./gradlew \
+    build \
+    publishToSonatype \
+    closeAndReleaseSonatypeStagingRepository \
+    --no-configuration-cache # Sonatype plugin fails configuration cache
 
 # Push tags to github
 git push --tags

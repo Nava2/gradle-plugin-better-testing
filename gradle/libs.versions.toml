@@ -13,7 +13,7 @@ jetbrains-annotations = { module = "org.jetbrains:annotations", version = "24.0.
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 
-mockito = { module = "org.mockito:mockito-core", version = "5.5.0" }
+mockito = { module = "org.mockito:mockito-core", version = "5.6.0" }
 
 pluginz-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 

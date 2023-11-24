@@ -7,7 +7,7 @@ repositories {
   mavenCentral()
 }
 
-val kotlinVersion = "1.9.10"
+val kotlinVersion = "1.9.21"
 val detektVersion = "1.23.3"
 
 dependencies {

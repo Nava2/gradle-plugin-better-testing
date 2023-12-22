@@ -2,7 +2,7 @@
 
 junit = "5.10.1"
 
-kotlin = "1.9.21"
+kotlin = "1.9.22"
 
 [libraries]
 

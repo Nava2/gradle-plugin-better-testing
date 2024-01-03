@@ -6,7 +6,7 @@ kotlin = "1.9.22"
 
 [libraries]
 
-assertj = { module = "org.assertj:assertj-core", version = "3.25.0" }
+assertj = { module = "org.assertj:assertj-core", version = "3.25.1" }
 
 jetbrains-annotations = { module = "org.jetbrains:annotations", version = "24.1.0" }
 

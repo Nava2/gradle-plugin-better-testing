@@ -16,7 +16,7 @@ dependencies {
   implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:$detektVersion")
   implementation("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
 
-  implementation("com.jaredsburrows:gradle-license-plugin:0.9.3")
+  implementation("com.jaredsburrows:gradle-license-plugin:0.9.4")
 }
 
 val javaVersion = providers.fileContents(rootProject.layout.projectDirectory.file(".java-version"))

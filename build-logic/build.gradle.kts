@@ -8,7 +8,7 @@ repositories {
 }
 
 val kotlinVersion = "1.9.23"
-val detektVersion = "1.23.5"
+val detektVersion = "1.23.6"
 
 dependencies {
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")

@@ -123,8 +123,7 @@ git tag v0.0.0
 RELEASE=1 ./gradlew \
     build \
     publishToSonatype \
-    closeAndReleaseSonatypeStagingRepository \
-    --no-configuration-cache # Sonatype plugin fails configuration cache
+    closeAndReleaseSonatypeStagingRepository
 
 # Push tags to github
 git push --tags

@@ -7,7 +7,7 @@ jobs:
 
     strategy:
       matrix:
-        gradle-version: [ '7.6.6', '8.13', '8.14.3', 'current' ]
+        gradle-version: [ '7.6.6', '8.13', '8.14.3', '9.0.0', 'current' ]
 
     steps:
       - uses: actions/checkout@v5

@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Verify gradle wrapper
-        uses: gradle/wrapper-validation-action@v4
+        uses: gradle/actions/wrapper-validation@v4
 
       - name: Cache TestKit
         id: cache-testkit

@@ -1,8 +1,8 @@
 package net.navatwo.gradle.testkit.junit5
 
 import org.jetbrains.annotations.VisibleForTesting
-import java.io.IOException
 import java.io.File
+import java.io.IOException
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitResult.CONTINUE
 import java.nio.file.FileVisitResult.SKIP_SUBTREE
@@ -57,7 +57,7 @@ internal sealed interface TestExecutionDirectory : AutoCloseable {
     override fun close() {
       try {
         cleaned.close()
-  
+
         if (root.exists()) {
           root.deleteRecursively()
         }

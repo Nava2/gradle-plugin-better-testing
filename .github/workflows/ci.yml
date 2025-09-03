@@ -7,27 +7,28 @@ jobs:
 
     strategy:
       matrix:
-        gradle-version: [ '7.5.1', '7.6.2', '8.0.1', '8.2.1', '8.3' ]
+        gradle-version: [ '7.6.6', '8.13', '8.14.3', 'current' ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Verify gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/wrapper-validation-action@v4
 
       - name: Cache TestKit
         id: cache-testkit
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/.gradle/testKit'
           key: gradle-${{ matrix.gradle-version }}-testkit
 
-      - name: Run CI checks
-        uses: gradle/gradle-build-action@v2
-        id: gradle
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ matrix.gradle-version }}
-          arguments: check buildHealth --scan --continue
+
+      - name: Run CI checks
+        run: |
+          ./gradlew check buildHealth --scan --continue
 
       - name: Verify build health
         run: |

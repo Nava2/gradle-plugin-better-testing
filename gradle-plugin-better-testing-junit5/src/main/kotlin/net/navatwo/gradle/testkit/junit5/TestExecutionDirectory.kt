@@ -2,6 +2,7 @@ package net.navatwo.gradle.testkit.junit5
 
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
+import java.io.IOException
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitResult.CONTINUE
 import java.nio.file.FileVisitResult.SKIP_SUBTREE
@@ -9,6 +10,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.logging.Level.WARNING
+import java.util.logging.Logger
 import kotlin.io.path.name
 
 private val DEFAULT_CLEANED_BUILD_DIRS = setOf("build", ".gradle")
@@ -39,6 +42,7 @@ internal sealed interface TestExecutionDirectory : AutoCloseable {
     internal val sourceRoot: File,
     val directoryNamesToClean: Set<String> = DEFAULT_CLEANED_BUILD_DIRS,
   ) : TestExecutionDirectory {
+    private val logger: Logger = Logger.getLogger(Pristine::class.qualifiedName)
 
     override val root: File = Files.createTempDirectory(TEMP_DIRECTORY_PREFIX).toFile()
 
@@ -51,10 +55,14 @@ internal sealed interface TestExecutionDirectory : AutoCloseable {
     }
 
     override fun close() {
-      cleaned.close()
+      try {
+        cleaned.close()
 
-      if (root.exists()) {
-        root.deleteRecursively()
+        if (root.exists()) {
+          root.deleteRecursively()
+        }
+      } catch (e: IOException) {
+        logger.log(WARNING, "Clean-up failed.", e)
       }
     }
 

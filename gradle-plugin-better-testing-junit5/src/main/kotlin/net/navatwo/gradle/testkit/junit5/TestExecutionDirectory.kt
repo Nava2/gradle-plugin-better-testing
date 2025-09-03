@@ -61,7 +61,7 @@ internal sealed interface TestExecutionDirectory : AutoCloseable {
         if (root.exists()) {
           root.deleteRecursively()
         }
-      } catch(e: IOException) {
+      } catch (e: IOException) {
         logger.log(WARNING, "Clean-up failed.", e)
       }
     }

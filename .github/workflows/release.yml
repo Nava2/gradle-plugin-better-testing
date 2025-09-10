@@ -23,7 +23,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '${{ matrix.gradle-version }}'
+          gradle-version: 8.14
 
       - run: ./gradlew check
 

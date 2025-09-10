@@ -24,11 +24,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '${{ matrix.gradle-version }}'
+          gradle-version: 8.14.3
 
       - name: Run CI checks
         run: |
-          gradle check buildHealth --scan --continue
+          ./gradlew check buildHealth --scan --continue
 
       - name: Verify build health
         run: |

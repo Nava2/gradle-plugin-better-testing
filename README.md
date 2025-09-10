@@ -10,7 +10,7 @@ Provides a JUnit 5 extension for loading Gradle Projects in a consistent way wit
 
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.5")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.6")
 }
 
 tasks.test {
@@ -34,7 +34,7 @@ tasks.test {
 ### Add to your project
 ```gradle
 dependencies {
-  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.5")
+  testImplementation("net.navatwo:gradle-plugin-better-testing-junit5:0.0.6")
 }
 ```
 
@@ -98,16 +98,40 @@ tasks.test {
 
 ### Releasing
 
+#### Prerequisites
+
+1. **GPG Key Setup**: Generate a GPG key for signing artifacts:
+   ```shell
+   gpg --full-generate-key
+   gpg --list-secret-keys --keyid-format=long
+   gpg --keyserver keys.openpgp.org --send-keys <KEY_ID>
+   ```
+
+2. **Sonatype Account**: Create an account at [central.sonatype.com](https://central.sonatype.com) and generate user tokens.
+
+#### Configuration
+
 Setup your local `~/.gradle/gradle.properties` with the following variables:
 
-```
-signing.keyId=<last eight digits of key id>
-signing.password=<password>
+```properties
+# Maven Central credentials (using new Sonatype Central)
+mavenCentralUsername=<sonatype user token>
+mavenCentralPassword=<sonatype user token password>
+
+# GPG signing configuration (choose one approach)
+# Option 1: File-based signing (if you have a secring.gpg file)
+signing.keyId=<last 8 chars of key ID>
+signing.password=<gpg key password>
 signing.secretKeyRingFile=/Users/my_user/.gnupg/secring.gpg
 
-sonatypeUsername=<sonatype user token>
-sonatypePassword=<sonatype user token password>
+# Option 2: GPG agent signing (recommended for modern GPG)
+signing.gnupg.executable=gpg
+signing.gnupg.keyName=<KEY_ID>
+signing.gnupg.passphrase=<gpg key password>
+signing.gnupg.useLegacyGpg=false
 ```
+
+#### Publishing Process
 
 ```shell
 # Clean the repo first to not have any old artifacts
@@ -117,19 +141,21 @@ sonatypePassword=<sonatype user token password>
 ./gradlew check
 
 # Tag a version
-git tag v0.0.0
+git tag v0.0.6
 
-# Publish a new build - BE MINDFUL OF SHELL HISTORY PRESERVING ENVIRONMENT VARIABLES
-RELEASE=1 ./gradlew \
-    build \
-    publishToSonatype \
-    closeAndReleaseSonatypeStagingRepository \
-    --no-configuration-cache # Sonatype plugin fails configuration cache
+# Publish to Maven Central using the Vanniktech plugin
+RELEASE=1 ./gradlew build publishToMavenCentral
 
 # Push tags to github
 git push --tags
 
-# Create a new release: https://github.com/Nava2/kaff4/releases
-# Update version to next patch version in `build-logic/src/main/kotlin/better-testing.versioning.gradle.kts`,
-#    e.g. `0.0.3-SNAPSHOT`
+# Create a new release: https://github.com/Nava2/gradle-plugin-better-testing/releases
+# Update version to next patch version in `build-logic/src/main/kotlin/better-testing.kotlin.gradle.kts`,
+#    e.g. `0.0.7-SNAPSHOT`
 ```
+
+#### Notes
+
+- Uses the [Vanniktech Maven Publish Plugin](https://vanniktech.github.io/gradle-maven-publish-plugin/) for simplified publishing
+- Artifacts are signed with GPG and published to Maven Central
+- The `RELEASE=1` environment variable strips `-SNAPSHOT` from the version

@@ -17,6 +17,7 @@ dependencies {
   implementation("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
 
   implementation("com.jaredsburrows:gradle-license-plugin:0.9.7")
+  implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.34.0")
 }
 
 val javaVersion = providers.fileContents(rootProject.layout.projectDirectory.file(".java-version"))

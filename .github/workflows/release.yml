@@ -1,0 +1,39 @@
+name: Release
+permissions:
+  contents: read
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  JVM-Run-Gradle-Release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Given we are doing a release, lets make sure we have a safe gradle install
+      - uses: gradle/actions/wrapper-validation@v4
+
+      - name: Cache TestKit
+        id: cache-testkit
+        uses: actions/cache@v4
+        with:
+          path: '**/.gradle/testKit'
+          key: gradle-${{ matrix.gradle-version }}-testkit
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.14
+
+      - run: ./gradlew check
+
+      - name: Publish plugin
+        run: |
+          RELEASE=1 ./gradlew \
+            build \
+            publishToSonatype \
+            closeAndReleaseSonatypeStagingRepository \
+            --no-configuration-cache # Sonatype plugin fails configuration cache
+        env:
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
